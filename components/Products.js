@@ -2,10 +2,20 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import productsService from '../services/productsService';
-import styles from '../public/style/productList.css'
 
 const ProductList = () => {
   const { isLoading, isError, data: products } = useQuery('products', productsService.getAllProducts);
+
+  const handleCreateProduct = async () => {
+    try {
+      await productsService.createProduct(productData);
+      queryClient.invalidateQueries('products');
+    } catch (error) {
+      console.error('Error creating product:', error);
+    }
+  };
+
+  // const { isLoading, isError, data: products } = useQuery('products', productsService.getAllProducts);
 
   if (isLoading) return <div className='p-8 bg-gray-100 min-h-screen '>Loading...</div>;
   if (isError) return <div className='bg-white p-8 min-h-screen '>Error fetching data</div>;

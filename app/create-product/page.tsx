@@ -1,6 +1,8 @@
 'use client'
 import React, { useState } from 'react';
+import { useMutation, useQueryClient } from 'react-query';
 import productsService from '../../services/productsService';
+import axios from 'axios';
 
 const ProductCreationPage = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +12,8 @@ const ProductCreationPage = () => {
     image: '',
   });
 
+  const [file, setFile] = useState<File | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
@@ -17,11 +21,23 @@ const ProductCreationPage = () => {
     });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await productsService.createProduct(formData);
-      console.log('Product created successfully');
+      if (file) {
+        const imageUrl = await productsService.uploadImage(file);
+        const newProductData = { ...formData, image: imageUrl };
+        await productsService.createProduct(newProductData);
+        console.log('Product created successfully');
+      } else {
+        console.error('No file selected for upload');
+      }
     } catch (error) {
       console.error('Error creating product:', error);
     }
@@ -71,11 +87,11 @@ const ProductCreationPage = () => {
           <div className="flex flex-col space-y-4">
             <label htmlFor="image" className="text-lg font-semibold text-gray-700">Image URL</label>
             <input
-              type="text"
+              type="file"
               id="image"
               name="image"
               value={formData.image}
-              onChange={handleChange}
+              onChange={handleFileChange}
               className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="Enter product image URL"
             />
